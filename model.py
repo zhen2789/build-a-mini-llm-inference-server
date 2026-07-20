@@ -279,8 +279,17 @@ def gather_kv_from_blocks(allocator, seq_id):
     return K, V
     pass
 
-# Step 23 - paged_attention_step (not yet solved)
-# TODO: implement
+# Step 23 - paged_attention_step
+def paged_attention_step(q, allocator, seq_id):
+    # TODO: gather K, V for seq_id from the paged allocator and run causal attention with q
+    # q (1, d_model)
+    # gather sequence's keys and values from blocks
+    k, v = gather_kv_from_blocks(allocator, seq_id) # (length, d_model)
+    # run scaled-dot-product attention over them
+    output = causal_attention(q, k, v, is_causal=True)
+    # return attention output as (1, d_model array)
+    return output
+    pass
 
 # Step 24 - free_sequence_blocks (not yet solved)
 # TODO: implement
