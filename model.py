@@ -264,33 +264,19 @@ def append_to_paged_cache(allocator, seq_id, k_new, v_new):
 # Step 22 - gather_kv_from_blocks
 def gather_kv_from_blocks(allocator, seq_id):
     # TODO: reconstruct contiguous (length, d_model) K and V from the sequence's paged blocks.
-    # goal: combine sequence paged block sections into one
-    # ! pre-allocate otuput buffers
-    # 1. get sequence id's seq_table and seq_length
-        # set equal to variable
     length = allocator['seq_lengths'][seq_id]
     block_ids = allocator['seq_tables'][seq_id]
     d_model = allocator['d_model']
     block_size = allocator['block_size']
     K = np.zeros((length, d_model), dtype=np.float32)
     V = np.zeros((length, d_model), dtype=np.float32)
-    # 2. copy out valid rows from K_blocks and V_blocks
-        # .copy()?
-        # slice with a loop
     for i, bid in enumerate(block_ids):
         start = i * block_size
         end = min((i+1) * block_size, length) # global row index where block ends
         n = min(block_size, length - i * block_size) # number of valid rows
         K[start:end] = allocator['K_blocks'][bid, :n]
         V[start:end] = allocator['V_blocks'][bid, :n]
-    
     return K, V
-        # block i starts at i*block_size and ends at 
-        # last block is only partially filled, so 
-    # 3. put those copies into two (length, d_model) arrays
-    
-    # 4. return (K, V) as np.float32 arrays
-    # intuition: attention can treat a paged cache as if it were contiguous
     pass
 
 # Step 23 - paged_attention_step (not yet solved)
