@@ -298,8 +298,18 @@ def free_sequence_blocks(allocator, seq_id):
         return None
     pass
 
-# Step 25 - kv_blocks_in_use (not yet solved)
-# TODO: implement
+# Step 25 - kv_blocks_in_use
+def kv_blocks_in_use(allocator):
+    # TODO: report allocator usage as {'used': int, 'free': int, 'total': int}.
+    free = len(allocator['free_list'])
+    total = allocator['num_blocks']
+    used = total - free
+    return {
+        'used': used,
+        'free': free,
+        'total': total
+    }
+    pass
 
 # Step 26 - make_request (not yet solved)
 # TODO: implement
