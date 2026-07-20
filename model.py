@@ -238,8 +238,28 @@ def free_block(allocator, block_id):
     return allocator['free_list'].append(block_id)
     pass
 
-# Step 21 - append_to_paged_cache (not yet solved)
-# TODO: implement
+# Step 21 - append_to_paged_cache
+def append_to_paged_cache(allocator, seq_id, k_new, v_new):
+    """Write t new K/V rows into the sequence's paged blocks, allocating as needed."""
+    # TODO: append k_new/v_new (t, d_model) rows into seq_id's paged blocks, growing the block table when needed.
+    if 'seq_lengths' not in allocator:
+        allocator['seq_lengths'] = {}
+    L = allocator['seq_lengths'].get(seq_id, 0)
+    t = k_new.shape[0]
+    block_count = blocks_needed(L + t, allocator['block_size'])
+    if seq_id not in allocator['seq_tables']:
+        allocate_block(allocator, seq_id)
+    while len(allocator['seq_tables'][seq_id]) < block_count:
+        allocate_block(allocator, seq_id)
+    for i in range(t):
+        token_pos = L + i
+        block_idx = token_pos // allocator['block_size']
+        token_slot = token_pos % allocator['block_size']
+        block_id = allocator['seq_tables'][seq_id][block_idx]
+        allocator['K_blocks'][block_id, token_slot] = k_new[i]
+        allocator['V_blocks'][block_id, token_slot] = v_new[i]
+    allocator['seq_lengths'][seq_id] = L + t
+    pass
 
 # Step 22 - gather_kv_from_blocks (not yet solved)
 # TODO: implement
