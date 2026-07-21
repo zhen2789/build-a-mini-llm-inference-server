@@ -375,8 +375,19 @@ def is_sequence_done(state, eos_token_id):
         return False
     pass
 
-# Step 30 - generate_single_sequence (not yet solved)
-# TODO: implement
+# Step 30 - generate_single_sequence
+def generate_single_sequence(request, params, eos_token_id, rng):
+    # TODO: drive end-to-end generation for one request and return only the generated token ids.
+    # initialize per-sequence state from prompt
+    seq_state = init_sequence_state(request, params)
+    # keep producing tokens until sequence is finished
+    done_condition = is_sequence_done(seq_state, eos_token_id)
+    while done_condition is False:
+        next_token_id, state = sequence_decode_step(seq_state, params, rng)
+        done_condition = is_sequence_done(seq_state, eos_token_id)
+    # return list of generated token ids not including prompt tokens
+    return list(seq_state['generated'])
+    pass
 
 # Step 31 - build_batch_step_input (not yet solved)
 # TODO: implement
