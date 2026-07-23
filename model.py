@@ -430,8 +430,40 @@ def batched_decode_step(params, sequences, sampling_config):
     return sequences
     pass
 
-# Step 33 - static_batch_generate (not yet solved)
-# TODO: implement
+# Step 33 - static_batch_generate
+def static_batch_generate(params, requests, sampling_config, max_new_tokens):
+    """Run prefill for all requests, then iterate batched decode steps until each
+    sequence hits its per-request budget or the global max_new_tokens cap."""
+    # TODO: prefill each request, then loop sampling next tokens until done.
+    output = []
+    for request in requests:
+        state = init_sequence_state(request, params)
+        cap = min(state['max_new_tokens'], max_new_tokens)
+        for i in range(max_new_tokens):
+            if sampling_config.get('greedy', False) is True or sampling_config.get('temperature', 1.0) <= 0:
+                next_token_id = int(greedy_select(state['last_logits']))
+                state['generated_token_ids'].append(next_token_id)
+            else:
+                logits = apply_temperature(state['last_logits'], sampling_config['temperature'])
+                if sampling_config.get('top_k', 0) > 0:
+                    logits = top_k_filter(logits, sampling_config['top_k'])
+                if sampling_config.get('top_p', 1.0) < 1.0:
+                    logits = top_p_filter(logits, sampling_config['top_p'])
+                probs = stable_softmax(logits)
+                next_token_id = sample_from_probs(probs, sampling_config['rng'])
+                state['generated_token_ids'].append(next_token_id)
+            if len(state['generated_token_ids']) >= cap:
+                break
+            else:
+                logits, cache = model_decode_step(next_token_id, state['cache'], params)
+                state['last_logits'] = logits
+        record = {
+            'request_id': request['request_id'],
+            'output_ids': state['generated_token_ids']
+        }
+        output.append(record)
+    return output
+    pass
 
 # Step 34 - has_free_capacity (not yet solved)
 # TODO: implement
