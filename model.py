@@ -473,8 +473,42 @@ def has_free_capacity(allocator, required_blocks):
         return False
     pass
 
-# Step 35 - continuous_batch_step (not yet solved)
-# TODO: implement
+# Step 35 - continuous_batch_step
+def continuous_batch_step(params, running, allocator, sampling_config):
+    """Advance every active sequence in `running` by one decoded token using the paged allocator."""
+    # TODO: for each non-done sequence, project Q/K/V from its last token, append to the paged cache, run paged attention, sample, and append.
+    for seq in running:
+        if seq['done'] == True:
+            continue
+        elif seq['done'] == False:
+            last_tok = seq['token_ids'][-1:]
+            x = embed_tokens(last_tok, params['embedding'])
+            q = x @ params['Wq']
+            k = x @ params['Wk']
+            v = x @ params['Wv']
+            seq_id = seq['request_id']
+            append_to_paged_cache(allocator, seq_id, k, v)
+            attn_output = paged_attention_step(q, allocator, seq_id) # (1, D)
+            out_proj = linear_projection(attn_output, params['Wo'], bias=None) # (1, D)
+            logits = linear_projection(out_proj, params['W_out'], bias=None) # (V, )
+            if sampling_config.get('greedy', False) is True or sampling_config.get('temperature', 1.0) <= 0:
+                next_token_id = int(greedy_select(logits))
+                seq['token_ids'].append(next_token_id)
+                seq['generated'].append(next_token_id)
+            else:
+                logits = apply_temperature(logits, sampling_config['temperature'])
+                if sampling_config.get('top_k', 0) > 0:
+                    logits = top_k_filter(logits, sampling_config['top_k'])
+                if sampling_config.get('top_p', 1.0) < 1.0:
+                    logits = top_p_filter(logits, sampling_config['top_p'])
+                probs = stable_softmax(logits)
+                next_token_id = sample_from_probs(probs, sampling_config['rng'])
+                seq['token_ids'].append(next_token_id)
+                seq['generated'].append(next_token_id)
+            seq['length'] += 1
+            seq['done'] = is_sequence_done(seq, sampling_config['eos_token_id'])
+    return running
+    pass
 
 # Step 36 - run_continuous_batching (not yet solved)
 # TODO: implement
