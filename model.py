@@ -415,11 +415,10 @@ def batched_decode_step(params, sequences, sampling_config):
     for idx, tok in zip(batch['active_indices'], batch['input_ids']):
         seq = sequences[idx]
         logits, _ = model_decode_step(int(tok), seq['kv_cache'], params)
-        if sampling_config.get('greedy', False) is True:
+        if sampling_config.get('greedy', False) is True or sampling_config.get('temperature', 1.0) <= 0:
             next_token_id = int(greedy_select(logits))
         else:
-            if sampling_config.get('temperature', 1.0) > 0:
-                logits = apply_temperature(logits, sampling_config['temperature'])
+            logits = apply_temperature(logits, sampling_config['temperature'])
             if sampling_config.get('top_k', 0) > 0:
                 logits = top_k_filter(logits, sampling_config['top_k'])
             if sampling_config.get('top_p', 1.0) < 1.0:
