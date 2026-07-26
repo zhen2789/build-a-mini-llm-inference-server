@@ -169,7 +169,7 @@ def model_prefill(token_ids, params):
     k = linear_projection(x, params['Wk'], bias=None) # (T, D)
     v = linear_projection(x, params['Wv'], bias=None) # (T, D)
     D = params['embedding'].shape[1]
-    cache = init_kv_cache(params['max_seq_len'], D)
+    cache = init_kv_cache(params.get('max_seq_len', 2048), D)
     appended_cache = append_kv(cache, k, v)
     attn_out = causal_attention(q, k, v, is_causal = True) # (T, D)
     out_proj = linear_projection(attn_out, params['Wo']) # (T, D)
@@ -510,8 +510,25 @@ def continuous_batch_step(params, running, allocator, sampling_config):
     return running
     pass
 
-# Step 36 - run_continuous_batching (not yet solved)
-# TODO: implement
+# Step 36 - run_continuous_batching
+def run_continuous_batching(params, requests, allocator, sampling_config, max_steps):
+    # TODO: Drive the continuous-batching loop: admit, decode, retire finished sequences.
+    waiting = requests.copy()
+    running = []
+    completed = []
+    for step in range(max_steps):
+        while len(running) < sampling_config.get('max_running', len(requests)):
+            request = waiting.pop(0)
+            seq = init_sequence_state(request, params)
+            running.append(seq)
+        running = continuous_batch_step(params, running, allocator, sampling_config)
+        for sequence in running:
+            if is_sequence_done(sequence, sampling_config.get('eos_token_id', -1)) is True:
+                free_sequence_blocks(allocator, sequence['request_id'])
+                output = {'request_id': sequence['request_id'], 'output_ids': list(sequence['generated'])}
+                completed.append(output)
+    return completed
+    pass
 
 # Step 37 - priority_queue_push (not yet solved)
 # TODO: implement
