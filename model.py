@@ -537,8 +537,15 @@ def run_continuous_batching(params, requests, allocator, sampling_config, max_st
     return completed
     pass
 
-# Step 37 - priority_queue_push (not yet solved)
-# TODO: implement
+# Step 37 - priority_queue_push
+import heapq
+
+def priority_queue_push(heap, priority, request):
+    # TODO: push (priority, counter, request) onto the min-heap with stable tie-breaking
+    counter = len(heap)
+    heapq.heappush(heap, (priority, counter, request))
+    return heap
+    pass
 
 # Step 38 - priority_queue_pop (not yet solved)
 # TODO: implement
