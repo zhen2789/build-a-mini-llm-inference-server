@@ -547,8 +547,16 @@ def priority_queue_push(heap, priority, request):
     return heap
     pass
 
-# Step 38 - priority_queue_pop (not yet solved)
-# TODO: implement
+# Step 38 - priority_queue_pop
+import heapq
+
+def priority_queue_pop(heap):
+    # TODO: Pop and return the request with the smallest priority from the min-heap, or None if empty.
+    if len(heap) == 0:
+        return None
+    priority, counter, request = heapq.heappop(heap)
+    return request
+    pass
 
 # Step 39 - select_admissions (not yet solved)
 # TODO: implement
