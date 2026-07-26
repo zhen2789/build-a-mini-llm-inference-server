@@ -329,6 +329,8 @@ def init_sequence_state(request, params):
     return {
         'request_id': request['request_id'],
         'prompt_token_ids': request['prompt_token_ids'].copy(),
+        'token_ids': request['prompt_token_ids'].copy(),
+        'length': len(request['prompt_token_ids']),
         'generated_token_ids': [],
         'generated': [],
         'cache': cache,
