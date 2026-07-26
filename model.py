@@ -577,8 +577,13 @@ def select_admissions(waiting_heap, allocator, block_size, max_admit):
     return admitted
     pass
 
-# Step 40 - preempt_sequence (not yet solved)
-# TODO: implement
+# Step 40 - preempt_sequence
+def preempt_sequence(sequence, allocator, waiting_heap):
+    # TODO: free the sequence's KV blocks and re-queue its request on the waiting heap.
+    free_sequence_blocks(allocator, sequence['request_id'])
+    waiting_heap = priority_queue_push(waiting_heap, sequence['priority'], sequence)
+    return sequence
+    pass
 
 # Step 41 - schedule_step (not yet solved)
 # TODO: implement
