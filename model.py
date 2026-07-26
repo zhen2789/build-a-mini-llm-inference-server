@@ -519,7 +519,7 @@ def run_continuous_batching(params, requests, allocator, sampling_config, max_st
     running = []
     completed = []
     for step in range(max_steps):
-        while len(running) < sampling_config.get('max_running', len(requests)):
+        while len(running) < sampling_config.get('max_running', len(requests)) and waiting:
             request = waiting.pop(0)
             seq = init_sequence_state(request, params)
             running.append(seq)
@@ -529,6 +529,11 @@ def run_continuous_batching(params, requests, allocator, sampling_config, max_st
                 free_sequence_blocks(allocator, sequence['request_id'])
                 output = {'request_id': sequence['request_id'], 'output_ids': list(sequence['generated'])}
                 completed.append(output)
+                running = [s for s in running if not is_sequence_done(s, sampling_config.get('eos_token_id', -1))]
+    for remaining_seq in running:
+        free_sequence_blocks(allocator, remaining_seq['request_id'])
+        remaining_output = {'request_id': remaining_seq['request_id'], 'output_ids': list(remaining_seq['generated'])}
+        completed.append(remaining_output)
     return completed
     pass
 
