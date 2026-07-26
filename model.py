@@ -334,7 +334,7 @@ def init_sequence_state(request, params):
         'cache': cache,
         'last_logits': last_logits,
         'done': False,
-        'sampling_params': request['sampling_params'],
+        'sampling_params': request.get('sampling_params', {}),
         'max_new_tokens': request['max_new_tokens']
     }
     pass
