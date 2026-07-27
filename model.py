@@ -596,8 +596,16 @@ def schedule_step(waiting_heap, running, allocator, block_size, max_running):
     return {'running': running, 'newly_admitted': admitted}
     pass
 
-# Step 42 - format_stream_chunk (not yet solved)
-# TODO: implement
+# Step 42 - format_stream_chunk
+def format_stream_chunk(request_id, token_id, token_text, finished):
+    # TODO: package a streaming token event into a chunk dict with keys request_id, token_id, text, finished.
+    return {
+        'request_id': request_id,
+        'token_id': token_id,
+        'text': token_text,
+        'finished': finished
+    }
+    pass
 
 # Step 43 - submit_request (not yet solved)
 # TODO: implement
