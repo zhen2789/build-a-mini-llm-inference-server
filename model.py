@@ -585,8 +585,16 @@ def preempt_sequence(sequence, allocator, waiting_heap):
     return sequence
     pass
 
-# Step 41 - schedule_step (not yet solved)
-# TODO: implement
+# Step 41 - schedule_step
+def schedule_step(waiting_heap, running, allocator, block_size, max_running):
+    # TODO: preempt over-capacity sequences, then admit from the waiting heap up to max_running.
+    while len(running) > max_running:
+        sequence = running.pop()
+        sequence = preempt_sequence(sequence, allocator, waiting_heap)
+    slots = max(0, max_running - len(running))
+    admitted = select_admissions(waiting_heap, allocator, block_size, slots)
+    return {'running': running, 'newly_admitted': admitted}
+    pass
 
 # Step 42 - format_stream_chunk (not yet solved)
 # TODO: implement
