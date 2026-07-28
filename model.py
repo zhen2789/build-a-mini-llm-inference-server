@@ -607,8 +607,20 @@ def format_stream_chunk(request_id, token_id, token_text, finished):
     }
     pass
 
-# Step 43 - submit_request (not yet solved)
-# TODO: implement
+# Step 43 - submit_request
+def submit_request(server_state, prompt, max_new_tokens, priority, vocab):
+    # TODO: encode the prompt, build a request record, push it on the waiting heap, return new id.
+    n = int(server_state['next_request_id'])
+    new_id = f"req-{n}"
+    if vocab['id_to_token'][0] == '<bos>':
+        prompt_token_ids = encode_prompt(prompt, vocab, add_bos=True)
+    else:
+        prompt_token_ids = encode_prompt(prompt, vocab, add_bos=False)
+    request = make_request(new_id, prompt_token_ids, max_new_tokens, {})
+    server_state['waiting_heap'] = priority_queue_push(server_state['waiting_heap'], priority, request)
+    server_state['next_request_id'] += 1
+    return new_id
+    pass
 
 # Step 44 - drive_until_complete (not yet solved)
 # TODO: implement
