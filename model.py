@@ -655,8 +655,17 @@ def drive_until_complete(server_state, params, allocator, sampling_config, vocab
     return server_state['completed']
     pass
 
-# Step 45 - collect_request_output (not yet solved)
-# TODO: implement
+# Step 45 - collect_request_output
+def collect_request_output(server_state, request_id):
+    # TODO: look up the completed record for request_id and return its output_ids and chunks
+    if request_id not in server_state.get('completed', {}):
+        return None
+    return {
+        'request_id': request_id,
+        'output_ids': server_state['completed'][request_id]['output_ids'],
+        'chunks': server_state['completed'][request_id]['chunks'] 
+    }
+    pass
 
 # Step 46 - build_completion_response (not yet solved)
 # TODO: implement
