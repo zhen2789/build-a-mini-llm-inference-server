@@ -628,7 +628,7 @@ def drive_until_complete(server_state, params, allocator, sampling_config, vocab
     server_state.setdefault('waiting_heap', [])
     server_state.setdefault('running', [])
     server_state.setdefault('completed', [])
-    server_state.setdefault('streams', [])
+    server_state.setdefault('streams', {})
     for i in range(max_steps):
         if len(server_state['waiting_heap']) == 0 and len(server_state['running']) == 0:
             break
