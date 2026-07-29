@@ -622,8 +622,38 @@ def submit_request(server_state, prompt, max_new_tokens, priority, vocab):
     return new_id
     pass
 
-# Step 44 - drive_until_complete (not yet solved)
-# TODO: implement
+# Step 44 - drive_until_complete
+def drive_until_complete(server_state, params, allocator, sampling_config, vocab, max_steps):
+    # TODO: run the scheduler/prefill/decode loop until queues are empty or max_steps is hit.
+    server_state.setdefault('waiting_heap', [])
+    server_state.setdefault('running', [])
+    server_state.setdefault('completed', [])
+    server_state.setdefault('streams', [])
+    for i in range(max_steps):
+        if len(server_state['waiting_heap']) == 0 and len(server_state['running']) == 0:
+            break
+        schedule = schedule_step(server_state['waiting_heap'], server_state['running'], allocator, allocator.get('block_size', 4), server_state.get('max_running', 8))
+        server_state['running'] = schedule['running']
+        for request in schedule['newly_admitted']:
+            logits, cache = model_prefill(request['prompt_token_ids'], params)
+            seq_dict = init_sequence_state(request, params)
+            server_state['running'].append(seq_dict)
+        prev_lens = {seq['request_id']: len(seq['generated']) for seq in server_state['running']}
+        if len(server_state['running']) != 0:
+            server_state['running'] = continuous_batch_step(params, server_state['running'], allocator, sampling_config)
+        for seq in server_state['running']:
+            start_idx = prev_lens[seq['request_id']]
+            seq_is_done = is_sequence_done(seq, sampling_config.get('eos_token_id', -1))
+            for new_token in seq['generated'][start_idx:]:
+                text = decode_tokens([new_token], vocab, skip_special=True)
+                stream_chunk = format_stream_chunk(seq['request_id'], new_token, text, is_seq_done)
+                server_state['streams'].append(stream_chunk)
+            if is_sequence_done(seq, sampling_config.get('eos_token_id', -1)) is True:
+                free_sequence_blocks(allocator, seq['request_id'])
+                server_state['completed'].append(seq)
+        server_state['running'] = [s for s in server_state['running'] if not is_sequence_done(s, sampling_config.get('eos_token_id', -1))]
+    return server_state['completed']
+    pass
 
 # Step 45 - collect_request_output (not yet solved)
 # TODO: implement
