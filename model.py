@@ -682,8 +682,24 @@ def build_completion_response(server_state, request_id, vocab):
     }
     pass
 
-# Step 47 - time_to_first_token (not yet solved)
-# TODO: implement
+# Step 47 - time_to_first_token
+def time_to_first_token(events):
+    # TODO: compute per-request TTFT from a list of timestamped serving events.
+    submit_times = {}
+    token_times = {}
+    time_diff = {}
+    for request in events:
+        if request['event'] == 'submit':
+            submit_times[request['request_id']] = request['time']
+        if request['event'] == 'token':
+            req_id = request['request_id']
+            if req_id not in token_times or request['time'] < token_times[req_id]:
+                token_times[request['request_id']] = request['time']
+    for req in submit_times:
+        if req in token_times:
+            time_diff[req] = token_times[req] - submit_times[req]
+    return time_diff
+    pass
 
 # Step 48 - inter_token_latency (not yet solved)
 # TODO: implement
