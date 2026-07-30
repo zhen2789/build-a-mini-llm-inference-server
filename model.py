@@ -670,9 +670,9 @@ def collect_request_output(server_state, request_id):
 # Step 46 - build_completion_response
 def build_completion_response(server_state, request_id, vocab):
     # TODO: build the final OpenAI-style completion dict from the completed record.
-    if request_id not in server_state.get('completed', {}):
-        return None
     record = collect_request_output(server_state, request_id)
+    if record is None:
+        return None
     text = decode_tokens(record['output_ids'], vocab, skip_special=True)
     return {
         'request_id': request_id,
