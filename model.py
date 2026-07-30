@@ -667,8 +667,20 @@ def collect_request_output(server_state, request_id):
     }
     pass
 
-# Step 46 - build_completion_response (not yet solved)
-# TODO: implement
+# Step 46 - build_completion_response
+def build_completion_response(server_state, request_id, vocab):
+    # TODO: build the final OpenAI-style completion dict from the completed record.
+    if request_id not in server_state.get('completed', {}):
+        return None
+    record = collect_request_output(server_state, request_id)
+    text = decode_tokens(record['output_ids'], vocab, skip_special=True)
+    return {
+        'request_id': request_id,
+        'text': text,
+        'output_ids': record['output_ids'].copy(),
+        'finish_reason': server_state['completed'][request_id].get('finish_reason', 'stop')
+    }
+    pass
 
 # Step 47 - time_to_first_token (not yet solved)
 # TODO: implement
