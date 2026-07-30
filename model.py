@@ -694,7 +694,7 @@ def time_to_first_token(events):
         if request['event'] == 'token':
             req_id = request['request_id']
             if req_id not in token_times or request['time'] < token_times[req_id]:
-                token_times[request['request_id']] = request['time']
+                token_times[req_id] = request['time']
     for req in submit_times:
         if req in token_times:
             time_diff[req] = token_times[req] - submit_times[req]
