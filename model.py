@@ -701,8 +701,26 @@ def time_to_first_token(events):
     return time_diff
     pass
 
-# Step 48 - inter_token_latency (not yet solved)
-# TODO: implement
+# Step 48 - inter_token_latency
+def inter_token_latency(events):
+    # TODO: compute mean inter-token latency per request from token-event timestamps.
+    token_times = {}
+    mean_itl = {}
+    for request in events:
+        if request['request_id'] not in token_times and request['event'] == 'token':
+            token_times[request['request_id']] = [request['time']]
+        elif request['request_id'] in token_times and request['event'] == 'token':
+            token_times[request['request_id']].append(request['time'])
+    for token_req_id, times in token_times.items():
+        times.sort()
+        if len(times) < 2:
+            mean_itl[token_req_id] = 0.0
+        else:
+            differences = [b - a for a, b in zip(times, times[1:])]
+            mean = sum(differences) / len(differences)
+            mean_itl[token_req_id] = mean
+    return mean_itl
+    pass
 
 # Step 49 - aggregate_throughput (not yet solved)
 # TODO: implement
