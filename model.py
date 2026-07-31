@@ -728,7 +728,7 @@ def aggregate_throughput(events, total_time):
     total_tokens = []
     total_requests = []
     for event in events:
-        if event['request_id'] not in total_requests and event['type'] == 'finish':
+        if event['type'] == 'finish':
             total_requests.append(event['request_id'])
         if event['type'] == 'first_token' or event['type'] == 'token':
             total_tokens.append(event['type'])
