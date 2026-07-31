@@ -752,7 +752,7 @@ def latency_percentiles(latencies, percentiles):
             idx = (len(latencies) - 1) * (p / 100)
             lower_bound = int((len(latencies) - 1) * (p / 100))
             if len(latencies) > 1:
-                upper_bound = lower_bound + 1
+                upper_bound = min(lower_bound + 1, len(latencies) - 1)
                 output[float(p)] = latencies[lower_bound] + (idx - lower_bound) * (latencies[upper_bound] - latencies[lower_bound])
             else:
                 output[float(p)] = latencies[lower_bound]
