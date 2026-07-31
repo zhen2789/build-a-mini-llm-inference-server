@@ -744,18 +744,18 @@ def aggregate_throughput(events, total_time):
 def latency_percentiles(latencies, percentiles):
     # TODO: return a dict mapping each percentile in `percentiles` to the corresponding latency value.
     output = {}
-    latencies.sort()
-    if len(latencies) == 0:
+    sorted_latencies = sorted(latencies)
+    if len(sorted_latencies) == 0:
         return {float(p): 0.0 for p in percentiles}
     else:
         for p in percentiles:
-            idx = (len(latencies) - 1) * (p / 100)
-            lower_bound = int((len(latencies) - 1) * (p / 100))
-            if len(latencies) > 1:
-                upper_bound = min(lower_bound + 1, len(latencies) - 1)
-                output[float(p)] = latencies[lower_bound] + (idx - lower_bound) * (latencies[upper_bound] - latencies[lower_bound])
+            idx = (len(sorted_latencies) - 1) * (p / 100)
+            lower_bound = int(idx)
+            if len(sorted_latencies) > 1:
+                upper_bound = min(lower_bound + 1, len(sorted_latencies) - 1)
+                output[float(p)] = sorted_latencies[lower_bound] + (idx - lower_bound) * (sorted_latencies[upper_bound] - sorted_latencies[lower_bound])
             else:
-                output[float(p)] = latencies[lower_bound]
+                output[float(p)] = sorted_latencies[lower_bound]
     return output
     pass
 
