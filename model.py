@@ -759,6 +759,43 @@ def latency_percentiles(latencies, percentiles):
     return output
     pass
 
-# Step 51 - run_throughput_latency_benchmark (not yet solved)
-# TODO: implement
+# Step 51 - run_throughput_latency_benchmark
+import time
+
+def run_throughput_latency_benchmark(params, allocator, vocab, prompts, sampling_config, max_new_tokens, max_steps):
+    # TODO: submit prompts, drive the server, and reduce events into TTFT/ITL/throughput/percentile metrics.
+    server_state = {'running': [], 'waiting_heap': [], 'next_request_id': 0, 'stream_buffer': [], 'completed': []}
+    t0 = time.perf_counter()
+    events = []
+    for prompt in prompts:
+        new_id = submit_request(server_state, prompt, max_new_tokens, 0, vocab)
+        now = time.perf_counter()
+        submit_event = {'request_id': new_id, 'event': 'submit', 'type': 'submit', 'time': now - t0}
+        events.append(submit_event)
+    for i in range(max_steps):
+        chunks = drive_until_complete(server_state, params, allocator, sampling_config, vocab, max_steps=1)
+        seen_requests = set()
+        for chunk in chunks:
+            now = time.perf_counter()
+            if chunk['request_id'] not in seen_requests and chunk['finished'] is False:
+                token_event = {'request_id': chunk['request_id'], 'event': 'token', 'type': 'first_token', 'time': now - t0}
+                events.append(token_event)
+                seen_requests.add(chunk['request_id'])
+            elif chunk['request_id'] in seen_requests and chunk['finished'] is False:
+                token_event = {'request_id': chunk['request_id'], 'event': 'token', 'type': 'token', 'time': now - t0}
+                events.append(token_event)
+            if chunk['finished'] is True:
+                finish_event = {'request_id': chunk['request_id'], 'event': 'finish', 'type': 'finish', 'time': now - t0}
+                events.append(finish_event)
+    now = time.perf_counter()
+    total_time = now - t0
+    latencies = list(time_to_first_token(events).values())
+    return {
+        'ttft': time_to_first_token(events),
+        'itl': inter_token_latency(events),
+        'throughput': aggregate_throughput(events, total_time),
+        'percentiles': latency_percentiles(latencies, sampling_config.get('percentiles', [50, 90, 99])),
+        'total_time': total_time
+    }
+    pass
 
