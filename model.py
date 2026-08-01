@@ -508,7 +508,7 @@ def continuous_batch_step(params, running, allocator, sampling_config):
                 seq['token_ids'].append(next_token_id)
                 seq['generated'].append(next_token_id)
             seq['length'] += 1
-            seq['done'] = is_sequence_done(seq, sampling_config['eos_token_id'])
+            seq['done'] = is_sequence_done(seq, sampling_config.get('eos_token_id', -1))
     return running
     pass
 
