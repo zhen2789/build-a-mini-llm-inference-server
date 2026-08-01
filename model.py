@@ -646,7 +646,7 @@ def drive_until_complete(server_state, params, allocator, sampling_config, vocab
             seq_is_done = is_sequence_done(seq, sampling_config.get('eos_token_id', -1))
             for new_token in seq['generated'][start_idx:]:
                 text = decode_tokens([new_token], vocab, skip_special=True)
-                stream_chunk = format_stream_chunk(seq['request_id'], new_token, text, is_seq_done)
+                stream_chunk = format_stream_chunk(seq['request_id'], new_token, text, seq_is_done)
                 server_state['streams'].append(stream_chunk)
             if is_sequence_done(seq, sampling_config.get('eos_token_id', -1)) is True:
                 free_sequence_blocks(allocator, seq['request_id'])
