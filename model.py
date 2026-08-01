@@ -627,7 +627,7 @@ def drive_until_complete(server_state, params, allocator, sampling_config, vocab
     # TODO: run the scheduler/prefill/decode loop until queues are empty or max_steps is hit.
     server_state.setdefault('waiting_heap', [])
     server_state.setdefault('running', [])
-    server_state.setdefault('completed', [])
+    server_state.setdefault('completed', {})
     server_state.setdefault('streams', {})
     for i in range(max_steps):
         if len(server_state['waiting_heap']) == 0 and len(server_state['running']) == 0:
@@ -647,12 +647,17 @@ def drive_until_complete(server_state, params, allocator, sampling_config, vocab
             for new_token in seq['generated'][start_idx:]:
                 text = decode_tokens([new_token], vocab, skip_special=True)
                 stream_chunk = format_stream_chunk(seq['request_id'], new_token, text, seq_is_done)
-                server_state['streams'].append(stream_chunk)
+                if seq['request_id'] not in server_state['streams']:
+                    server_state['streams'][seq['request_id']] = []
+                server_state['streams'][seq['request_id']].append(stream_chunk)
             if is_sequence_done(seq, sampling_config.get('eos_token_id', -1)) is True:
                 free_sequence_blocks(allocator, seq['request_id'])
-                server_state['completed'].append(seq)
+                server_state['completed'][seq['request_id']] = {
+                    'output_ids': seq['generated'],
+                    'chunks': server_state['streams'][seq['request_id']]
+                    }
         server_state['running'] = [s for s in server_state['running'] if not is_sequence_done(s, sampling_config.get('eos_token_id', -1))]
-    return server_state['completed']
+    return list(server_state['completed'].values())
     pass
 
 # Step 45 - collect_request_output
