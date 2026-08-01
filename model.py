@@ -494,11 +494,11 @@ def continuous_batch_step(params, running, allocator, sampling_config):
             out_proj = linear_projection(attn_output, params['Wo'], bias=None) # (1, D)
             logits = linear_projection(out_proj, params['W_out'], bias=None) # (V, )
             if sampling_config.get('greedy', False) is True or sampling_config.get('temperature', 1.0) <= 0:
-                next_token_id = int(greedy_select(logits))
+                next_token_id = int(greedy_select(logits[0]))
                 seq['token_ids'].append(next_token_id)
                 seq['generated'].append(next_token_id)
             else:
-                logits = apply_temperature(logits, sampling_config['temperature'])
+                logits = apply_temperature(logits[0], sampling_config['temperature'])
                 if sampling_config.get('top_k', 0) > 0:
                     logits = top_k_filter(logits, sampling_config['top_k'])
                 if sampling_config.get('top_p', 1.0) < 1.0:
