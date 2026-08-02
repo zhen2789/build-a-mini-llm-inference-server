@@ -1,5 +1,4 @@
 from tokenizer import encode_prompt, decode_tokens
-from model import model_prefill
 from paging import free_sequence_blocks
 from sequence import make_request, init_sequence_state, is_sequence_done
 from scheduler import continuous_batch_step, priority_queue_push, schedule_step
