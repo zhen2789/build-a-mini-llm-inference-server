@@ -1,5 +1,7 @@
 # mini-llm-inference-server
 
+A complete LLM inference stack from scratch, including sampling, tokenization, a tiny transformer with KV caching, a paged attention allocator, continuous batching with scheduling, a streaming serving API, and a throughput/latency benchmark harness.
+
 ## Overview
 
 This project builds a mini large-language model (LLM) inference server, which hosts a small transformer architecture built from scratch with random weights and processes text generation requests, mirroring the core architecture of production serving systems like vLLM.
